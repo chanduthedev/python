@@ -35,19 +35,19 @@ def token_required(func):
             # decoding jwt token with secret
             data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
 
+            # verifying whether token is belogns to current user
             current_user = static_users.get(data["user_name"])
             if current_user is None:
                 return make_error_response("Invalid Authentication token!", 401)
+
             # Convert the expiration time to a datetime object
             expiration_datetime = dt.utcfromtimestamp(data["exp"])
-
             # Get the current time
             current_time = dt.utcnow()
 
             # Check if the token has expired
             if current_time > expiration_datetime:
                 return make_error_response("Token has expired", 401)
-
             # token is valid, process the request
             return func(*args, **kwargs)
         except jwt.ExpiredSignatureError:
@@ -81,7 +81,7 @@ def login_user(input_data):
             "user_name": input_data.get("user_name"),
             "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5),
         }
-        # creating JWT token with expiry of 30mins
+        # creating JWT token with expiry of 5mins
         token = jwt.encode(payload, SECRET_KEY)
 
         # Appending token in the login success response
